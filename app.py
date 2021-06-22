@@ -108,6 +108,24 @@ def showpost():
     return jsonify(rs)
 
 
+@app.route('/api/deletepost/<int:id>')
+def deletepost(id):
+    conn = sqlite3.connect(connection_data)
+    cur = conn.cursor()
+    sql = "DELETE FROM post WHERE post_ID='"+str(id)+"'"
+    cur.execute(sql)
+    conn.commit()
+    conn.close()
+    return "thanh cong", 200
+
+
+@app.route('/api/selectpost/<int:id>')
+def selectpostById(id):
+    Posts = PostAcction(connection_data)
+    result = Posts.showById(id)
+    return jsonify(result)
+
+
 if __name__ == '__main__':
     app.secret_key = 'super secret key'
     app.config['SESSION_TYPE'] = 'filesystem'
