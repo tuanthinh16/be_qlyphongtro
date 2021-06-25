@@ -25,7 +25,7 @@ def resigter():
     repassword = request.form['repassword']
     email = request.form['email']
     if(password == repassword):
-        con = sqlite3.connect('chat.db')
+        con = sqlite3.connect(connection_data)
         cur = con.cursor()
         sql = "INSERT INTO user('username','password','email') VALUES ('"+str(username) + \
             "','"+str(password)+"','"+str(email)+"')"
@@ -42,7 +42,7 @@ def login():
     username = request.form["username"]
     password = request.form["password"]
     print(username, password)
-    conn = sqlite3.connect('chat.db')
+    conn = sqlite3.connect(connection_data)
     cur = conn.cursor()
     sql = "SELECT * FROM user WHERE username ='"+str(username)+"'"
     cur.execute(sql)
@@ -61,16 +61,17 @@ def sigout():
     return redirect('/api/login')
 
 
-@app.route('/api/addcomment', methods=['POST'])
+@app.route('/api/addcmt', methods=['POST'])
 def addcomment():
     detail = request.form["comment"]
     username = request.form["username"]
     time = datetime.datetime.now()
-    post_ID = request.form["post_id"]
-    conn = sqlite3.connect('chat.db')
+    post_ID = request.form["post_ID"]
+    conn = sqlite3.connect(connection_data)
     cur = conn.cursor()
-    sql = "INSERT INTO comment ('detail','username','time','post_ID') VALUES('" + \
-        str(detail)+"','"+str(username)+"','"+str(time)+"')"
+    sql = "INSERT INTO comment('detail','username','time','post_ID') VALUES('" + \
+        str(detail)+"','"+str(username)+"','" + \
+        str(time)+"'," + post_ID+")"
     cur.execute(sql)
     conn.commit()
     conn.close()
@@ -81,6 +82,13 @@ def addcomment():
 def showcommet():
     Comment = CommentAcction(connection_data)
     result = Comment.show_all()
+    return jsonify(result)
+
+
+@app.route('/api/showcmtbyID/<int:id>')
+def showcmtbyID(id):
+    Comment = CommentAcction(connection_data)
+    result = Comment.showbyID(id)
     return jsonify(result)
 
 
@@ -126,9 +134,50 @@ def selectpostById(id):
     return jsonify(result)
 
 
+@app.route('/api/editpost', methods=['POST'])
+def editpostById():
+    post_ID = request.form['post_ID']
+    title = request.form['title']
+    type = request.form['type']
+    detail = request.form['detail']
+    conn = sqlite3.connect(connection_data)
+    cur = conn.cursor()
+    sql = "UPDATE post SET title='" + \
+        str(title)+"', type='"+str(type)+"', detail='" + \
+        str(detail)+"' WHERE post_ID = "+post_ID
+    cur.execute(sql)
+    conn.commit()
+    conn.close()
+    return "thanh cong", 200
+
+
+@app.route("/api/showbytype/<int:id>")
+def showbyType(id):
+    if id == 1:
+        type = 'it'
+    elif id == 2:
+        type = 'learning'
+    elif id == 3:
+        type = 'working'
+    elif id == 4:
+        type = 'photography'
+    elif id == 5:
+        type = 'freelance'
+    elif id == 6:
+        type = 'other'
+    Posts = PostAcction(connection_data)
+    result = Posts.showbytype(type)
+    return jsonify(result)
+
+
+@app.route('/api/search/<string:value>')
+def search(value):
+    Posts = PostAcction(connection_data)
+    rs = Posts.search(value)
+    return jsonify(rs)
+
+
 if __name__ == '__main__':
     app.secret_key = 'super secret key'
     app.config['SESSION_TYPE'] = 'filesystem'
-    sess.init_app(app)
-    app.debug = True
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
