@@ -24,16 +24,24 @@ def resigter():
     password = request.form['password']
     repassword = request.form['repassword']
     email = request.form['email']
-    if(password == repassword):
-        con = sqlite3.connect(connection_data)
-        cur = con.cursor()
-        sql = "INSERT INTO user('username','password','email') VALUES ('"+str(username) + \
-            "','"+str(password)+"','"+str(email)+"')"
-        cur.execute(sql)
-        con.commit()
-        con.close()
+    con = sqlite3.connect(connection_data)
+    cur = con.cursor()
+    isRecordExit = 0
+    rows = cur.execute(
+        "SELECT * FROM user WHERE username ='"+str(username)+"'")
+    for row in rows:
+        isRecordExit = 1
+    if isRecordExit == 1:
+        return "Account has been exited", 401
     else:
-        return "Invalid", 401
+        if(password == repassword):
+            sql = "INSERT INTO user('username','password','email') VALUES ('"+str(username) + \
+                "','"+str(password)+"','"+str(email)+"')"
+            cur.execute(sql)
+            con.commit()
+            con.close()
+        else:
+            return "Invalid", 401
     return "thanh cong", 200
 
 
@@ -44,13 +52,19 @@ def login():
     print(username, password)
     conn = sqlite3.connect(connection_data)
     cur = conn.cursor()
+    isRecordExit = 0
     sql = "SELECT * FROM user WHERE username ='"+str(username)+"'"
     cur.execute(sql)
     for row in cur:
-        if str(row[2]) == password:
+        isRecordExit = 1
+    if isRecordExit == 1:
+        if str(row[1]) == username and str(row[2]) == password:
             return "thanh cong", 200
         else:
             return "error", 401
+    else:
+        print(" tai khoan khong ton tai")
+        return "khong ton tai", 401
     return redirect('/api/')
 
 
@@ -103,7 +117,6 @@ def addpost():
     sql = "INSERT INTO post ('title', 'type', 'detail', 'username') VALUES ('"+str(
         title)+"','"+str(type)+"','"+str(detail)+"','"+str(username)+"')"
     cur.execute(sql)
-    cur.execute(sql)
     con.commit()
     con.close()
     return "thanh cong", 200
@@ -154,17 +167,17 @@ def editpostById():
 @app.route("/api/showbytype/<int:id>")
 def showbyType(id):
     if id == 1:
-        type = 'it'
+        type = 'IT'
     elif id == 2:
-        type = 'learning'
+        type = 'Learning'
     elif id == 3:
-        type = 'working'
+        type = 'Working'
     elif id == 4:
-        type = 'photography'
+        type = 'Photography'
     elif id == 5:
-        type = 'freelance'
+        type = 'Freelance'
     elif id == 6:
-        type = 'other'
+        type = 'Other'
     Posts = PostAcction(connection_data)
     result = Posts.showbytype(type)
     return jsonify(result)
