@@ -19,7 +19,8 @@ class CommentAcction:
                 detail=row[1],
                 username=row[2],
                 time=row[3],
-                post_ID=row[4]
+                post_ID=row[4],
+                point=row[5]
             )
             result.append(Comment.visibale())
         return result
@@ -37,7 +38,8 @@ class CommentAcction:
                 detail=row[1],
                 username=row[2],
                 time=row[3],
-                post_ID=row[4]
+                post_ID=row[4],
+                point=row[5]
             )
             result.append(Comment.visibale())
         return result

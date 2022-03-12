@@ -18,8 +18,12 @@ class PostAcction:
                 post_ID=row[0],
                 title=row[1],
                 type=row[2],
-                detail=row[3],
-                username=row[4]
+                dientich=row[3],
+                address=row[4],
+                detail=row[5],
+                username=row[6],
+                timeposted=row[7],
+                cost=row[8]
             )
             result.append(posts.visibale())
         return result
@@ -39,8 +43,12 @@ class PostAcction:
             post_ID=row[0],
             title=row[1],
             type=row[2],
-            detail=row[3],
-            username=row[4],
+            dientich=row[3],
+            address=row[4],
+            detail=row[5],
+            username=row[6],
+            timeposted=row[7],
+            cost=row[8]
         )
         result.append(posts.visibale())
         return result
@@ -57,8 +65,12 @@ class PostAcction:
                 post_ID=row[0],
                 title=row[1],
                 type=row[2],
-                detail=row[3],
-                username=row[4],
+                dientich=row[3],
+                address=row[4],
+                detail=row[5],
+                username=row[6],
+                timeposted=row[7],
+                cost=row[8]
             )
             result.append(posts.visibale())
         return result
@@ -76,8 +88,12 @@ class PostAcction:
                 post_ID=row[0],
                 title=row[1],
                 type=row[2],
-                detail=row[3],
-                username=row[4]
+                dientich=row[3],
+                address=row[4],
+                detail=row[5],
+                username=row[6],
+                timeposted=row[7],
+                cost=row[8]
             )
             result.append(posts.visibale())
         return result
