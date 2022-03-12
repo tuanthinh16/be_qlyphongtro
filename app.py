@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 
 from comment.comment_acction import CommentAcction
 from post.post_acction import PostAcction
+from account.account_acction import AccountAcction
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origin": "*"}})
@@ -65,7 +66,10 @@ def login():
         isRecordExit = 1
     if isRecordExit == 1:
         if str(row[2]) == username and str(row[3]) == password:
-            return "thanh cong", 200
+            if str(row[6]) == '0':
+                return "admin login", 200
+            else:
+                return "user login", 200
         else:
             return "error", 401
     else:
@@ -73,7 +77,12 @@ def login():
         return "khong ton tai", 401
     return redirect('/api/')
 
-
+@app.route('/api/getalluser')
+def getalluser():
+    Account = AccountAcction(connection_data)
+    return jsonify(Account.showall())
+    
+    
 @app.route('/api/sigout')
 def sigout():
     session.pop("username", None)
@@ -116,7 +125,8 @@ def showcmtbyID(id):
 def addpost():
     ids = int(round(time.time() * 100))
     loai = ''
-    #pic = request.files['file']
+    filename = ''
+    image = request.files['image_post']
 
     title = request.form['title']
     types = request.form['type']
@@ -142,13 +152,12 @@ def addpost():
     sql = "INSERT INTO post ('post_ID','title', 'type','dientich','address', 'detail', 'username','timeposted','cost') VALUES ('"+str(ids)+"','"+str(
         title)+"','"+str(loai)+"','"+str(dientich)+"','"+str(diachi)+"','"+str(detail)+"','"+str(username)+"','"+str(time_posted)+"','"+str(cost)+"')"
     cur.execute(sql)
-    # filename = secure_filename(pic.filename)
-    # mimetype = pic.mimetype
-    # if not filename or not mimetype:
-    #     return 'Bad upload!', 400
-    # sql2 = "INSERT INTO image_save(name_file,'post_ID',img,mimetype) VALUES (" + \
-    #     filename+",'"+str(ids)+"',"+pic.read()+","+mimetype+")"
-    # cur.execute(sql2)
+    if image and allowed_file(image.filename):
+        filename = secure_filename(file.filename)
+        image.save(os.path.join('../images', filename))
+    sql2 = "INSERT INTO image_save('name_file','post_ID') VALUES ('" + \
+        filename+"','"+str(ids)+"')"
+    cur.execute(sql2)
     con.commit()
     con.close()
     return "thanh cong", 200
