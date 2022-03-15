@@ -7,10 +7,21 @@ import datetime
 import sqlite3
 import time
 from werkzeug.utils import secure_filename
+import os.path
+from PIL import Image
+from io import BytesIO
+from flask import send_file, send_from_directory
+from flask import Response
+import io
+import zipfile
+from os.path import basename
+import os
+
 
 from comment.comment_acction import CommentAcction
 from post.post_acction import PostAcction
 from account.account_acction import AccountAcction
+from image_post.imageacction import ImagePostAction
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origin": "*"}})
@@ -77,12 +88,13 @@ def login():
         return "khong ton tai", 401
     return redirect('/api/')
 
+
 @app.route('/api/getalluser')
 def getalluser():
     Account = AccountAcction(connection_data)
     return jsonify(Account.showall())
-    
-    
+
+
 @app.route('/api/sigout')
 def sigout():
     session.pop("username", None)
@@ -121,15 +133,91 @@ def showcmtbyID(id):
     return jsonify(result)
 
 
+@app.route('/api/getidimage/<int:id>')
+def getidimage(id):
+    con = sqlite3.connect(connection_data)
+    cur = con.cursor()
+    sql = "SELECT * FROM image_save WHERE post_id='"+str(id)+"'"
+    cur.execute(sql)
+    rows = cur.fetchall()
+    images = []
+    for row in rows:
+        image_id = row[0]
+        name_file = row[1]
+        post_id = row[2]
+        img = row[3]
+        write_file(img, name_file, post_id)
+        images.append(image_id)
+        #print("size file:", (img))
+    return jsonify(
+        {
+            'id_image': images,
+        })
+
+
+@app.route("/api/getimage/<int:id>")
+def getimage(id):
+    con = sqlite3.connect(connection_data)
+    cur = con.cursor()
+    sql = "SELECT * FROM image_save WHERE image_id='"+str(id)+"'"
+    cur.execute(sql)
+    rows = cur.fetchall()
+    for row in rows:
+        image_id = row[0]
+        name_file = row[1]
+        post_id = row[2]
+        img = row[3]
+    return send_file(BytesIO(img), mimetype='image/jpeg', attachment_filename=name_file)
+
+
+def zipdir(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file),
+                       os.path.relpath(os.path.join(root, file),
+                                       os.path.join(path, '..')))
+
+
+def write_file(data, filename, idf):
+    if not os.path.exists("images\\"+idf+"\\"):
+        os.makedirs("images\\"+idf+"\\")
+    with open("images\\"+idf+"\\"+filename, 'wb') as f:
+        f.write(data)
+
+
+@app.route('/api/addimage', methods=['POST'])
+def addimage():
+    ids = request.form['ids']
+    print("ids: "+ids)
+    image = request.files['files']
+    con = sqlite3.connect(connection_data)
+    cur = con.cursor()
+    img = image.read()
+    # for i in range(len(image)):
+    #     print("image: "+image[i])
+    filename = secure_filename(image.filename)
+    #img.save("./images/", filename)
+    # image.save(os.path.join('../images', filename))
+    sql2 = """INSERT INTO image_save('name_file','img','post_ID') VALUES (?,?,?)"""
+
+    data_tuple = (filename, img, ids)
+    cur.execute(sql2, data_tuple)
+    con.commit()
+    con.close()
+    return jsonify({
+        'success': True,
+        'file': 'Received'
+    })
+
+
 @app.route('/api/addpost', methods=['POST'])
 def addpost():
-    ids = int(round(time.time() * 100))
+    ids = request.form['ids']
     loai = ''
-    filename = ''
-    image = request.files['image_post']
-
     title = request.form['title']
     types = request.form['type']
+    # print("File"+request.files['files'])
     if types == 'thue':
         loai = 'Cho Thuê'
     elif types == 'tim':
@@ -152,12 +240,6 @@ def addpost():
     sql = "INSERT INTO post ('post_ID','title', 'type','dientich','address', 'detail', 'username','timeposted','cost') VALUES ('"+str(ids)+"','"+str(
         title)+"','"+str(loai)+"','"+str(dientich)+"','"+str(diachi)+"','"+str(detail)+"','"+str(username)+"','"+str(time_posted)+"','"+str(cost)+"')"
     cur.execute(sql)
-    if image and allowed_file(image.filename):
-        filename = secure_filename(file.filename)
-        image.save(os.path.join('../images', filename))
-    sql2 = "INSERT INTO image_save('name_file','post_ID') VALUES ('" + \
-        filename+"','"+str(ids)+"')"
-    cur.execute(sql2)
     con.commit()
     con.close()
     return "thanh cong", 200
@@ -264,4 +346,6 @@ def like(id):
 if __name__ == '__main__':
     app.secret_key = 'super secret key'
     app.config['SESSION_TYPE'] = 'filesystem'
-    app.run(host='0.0.0.0', port=5000)
+    app.config['TESTING'] = True
+    app.testing = True
+    app.run(host='0.0.0.0', port=5000, debug=True)
