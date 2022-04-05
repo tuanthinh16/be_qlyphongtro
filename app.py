@@ -32,7 +32,6 @@ connection_data = ('phongtro.db')
 def index():
     return ("hello")
 
-
 @app.route('/api/resigter', methods=['POST'])
 def resigter():
     name = request.form['name']
@@ -317,7 +316,17 @@ def delete(id):
     conn.close()
     return "thanh cong", 200
 
-
+@app.route('/api/adddataaSearch',methods=['POST'])
+def adddata():
+    value = request.form['value']
+    username = request.form['username']
+    conn = sqlite3.connect(connection_data)
+    cur = conn.cursor()
+    sql = "INSERT INTO searchdata('detail','username') VALUES ('"+str(value)+"','"+str(username)+"')"
+    cur.execute(sql)
+    conn.commit()
+    conn.close()
+    return "ok",200
 @app.route('/api/search/<string:value>')
 def search(value):
     Posts = PostAcction(connection_data)

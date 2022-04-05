@@ -79,7 +79,7 @@ class PostAcction:
         conn = sqlite3.connect(self.db_connection)
         cur = conn.cursor()
         sql = "SELECT * FROM post WHERE title Like '%" + \
-            value+"%' OR type like '%"+value+"%'"
+            value+"%' OR type like '%"+value+"%' OR address like '%"+value+"%' OR cost like '%"+value+"%'"
         cur.execute(sql)
         rows = cur.fetchall()
         result = []
