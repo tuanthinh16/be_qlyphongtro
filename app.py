@@ -88,7 +88,10 @@ def login():
         return "khong ton tai", 401
     return redirect('/api/')
 
-
+@app.route('/api/getname/<string:usr>')
+def getfullname(usr):
+    Account = AccountAcction(connection_data)
+    return jsonify(Account.showname(usr))
 @app.route('/api/getalluser')
 def getalluser():
     Account = AccountAcction(connection_data)
@@ -125,7 +128,7 @@ def showcommet():
     result = Comment.show_all()
     return jsonify(result)
 
-
+ 
 @app.route('/api/showcmtbyID/<int:id>')
 def showcmtbyID(id):
     Comment = CommentAcction(connection_data)

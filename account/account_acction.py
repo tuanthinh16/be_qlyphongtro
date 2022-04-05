@@ -24,3 +24,21 @@ class AccountAcction:
             )
             result.append(account.visibale())
         return result
+    def showname(self,user):
+        conn = sqlite3.connect(self.db_connection)
+        cur = conn.cursor()
+        sql = "SELECT * FROM user WHERE username = '"+user+"'"
+        cur.execute(sql)
+        rows = cur.fetchall()
+        result = []
+        for row in rows:
+            account = account_model.Account(
+                name=row[1],
+                username=row[2],
+                password=row[3],
+                email=row[4],
+                phone=row[5],
+                role=row[6]
+            )
+            result.append(account.visibale())
+        return result
