@@ -91,6 +91,7 @@ def login():
 def getfullname(usr):
     Account = AccountAcction(connection_data)
     return jsonify(Account.showname(usr))
+    
 @app.route('/api/getalluser')
 def getalluser():
     Account = AccountAcction(connection_data)
