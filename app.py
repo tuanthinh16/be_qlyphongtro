@@ -22,6 +22,7 @@ from comment.comment_acction import CommentAcction
 from post.post_acction import PostAcction
 from account.account_acction import AccountAcction
 from image_post.imageacction import ImagePostAction
+from datasearch.data_acction import DataAcction
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origin": "*"}})
@@ -319,12 +320,24 @@ def delete(id):
 
 @app.route('/api/adddataaSearch',methods=['POST'])
 def adddata():
+    isVaild = 0
     value = request.form['value']
     username = request.form['username']
     conn = sqlite3.connect(connection_data)
     cur = conn.cursor()
-    sql = "INSERT INTO searchdata('detail','username') VALUES ('"+str(value)+"','"+str(username)+"')"
-    cur.execute(sql)
+    cur.execute("SELECT * FROM searchdata WHERE detail like '%"+str(value)+"%'")
+    for row in cur: 
+        count = int(row[3])
+        count +=1
+        isVaild = 1
+    if isVaild == 1:
+        #update count
+        sql = "UPDATE searchdata SET count = '"+str(count)+"' WHERE detail like '%"+str(value)+"%'"
+        cur.execute(sql)
+    elif isVaild == 0:
+        #adddata
+        sql = "INSERT INTO searchdata('detail','username') VALUES ('"+str(value)+"','"+str(username)+"')"
+        cur.execute(sql)
     conn.commit()
     conn.close()
     return "ok",200
@@ -354,6 +367,11 @@ def like(id):
     conn.commit()
     conn.close()
     return "ok", 200
+
+@app.route('/api/selectdetailcmt')
+def selectdetailcmt():
+    dt = DataAcction(connection_data)
+    return jsonify(dt.getall())
 
 
 if __name__ == '__main__':
