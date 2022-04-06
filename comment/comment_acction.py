@@ -9,7 +9,7 @@ class CommentAcction:
     def show_all(self):
         conn = sqlite3.connect(self.db_connection)
         cur = conn.cursor()
-        sql = "SELECT * FROM comment WHERE "
+        sql = "SELECT * FROM comment "
         cur.execute(sql)
         rows = cur.fetchall()
         result = []
